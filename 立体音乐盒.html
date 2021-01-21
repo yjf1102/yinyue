@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立体音乐盒</title>
+    <script src="yinyuehe.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="yinyuehe.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="main">
+            <ul class="box" id="box" :class="infoShow?'play':'pause'">
+                <li v-for="(item,index) in list" :key="item.index" :class="{imgOpen:item.imgShow}">
+                    <img :src="item.imgUrl" />
+                </li>
+            </ul>
+            <dl class="minBox" id="minBox">
+                <dd v-for="(item,index) in list" :key="item.index">
+                    <img :src="item.imgUrl" />
+                </dd>
+            </dl>
+        </div>
+        <audio src="music/tiantian.mp3" ref="vd"></audio>
+        <div class="catMain">
+            <div class="cat" id="cat">
+                <div class="head_content">
+                    <div class="ear_left"></div>
+                    <div class="ear_right"></div>
+                    <div class="head"></div>
+                    <div class="brow_left"></div>
+                    <div class="brow_right"></div>
+                    <div class="eye_left">
+                        <div id="pL" class="pupil"></div>
+                    </div>
+                    <div class="eye_right">
+                        <div id="pR" class="pupil"></div>
+                    </div>
+                    <div class="beard_left1"></div>
+                    <div class="beard_left2"></div>
+                    <div class="beard_left3"></div>
+                    <div class="beard_right1"></div>
+                    <div class="beard_right2"></div>
+                    <div class="beard_right3"></div>
+                    <div class="nose"></div>
+                    <div class="mouse">
+                        <div class="mouse_top"></div>
+                        <div class="mouse_left"></div>
+                        <div class="mouse_right"></div>
+                        <div class="mouse_bottom" v-if="!infoShow"></div>
+                        <div class="mouse_bottom_show" v-else></div>
+                        <div class="miao" id="miao">
+                            <img :src="infoShow?'img/xin.png':'img/xinsui.png'" />
+                        </div>
+                    </div>
+                </div>
+                <div class="body_content">
+                    <div class="body"></div>
+                    <div class="arm_left"></div>
+                    <div class="arm_right"></div>
+                    <div class="leg_left"></div>
+                    <div class="leg_right"></div>
+                    <div class="content-info" @click="cirClick">
+                        <span :style="{color:infoShow?'#36c9a3':'#fa004b'}">{{infoShow?'关闭':'打开'}}</span>
+                    </div>
+                    <div class="tail">
+                        <div class="tail1"></div>
+                        <div class="tail2"></div>
+                        <div class="tail3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data() {
+            return {
+                list: [{
+                    index: 1,
+                    imgUrl: 'img/1.jpg',
+                    imgShow: false
+                }, {
+                    index: 2,
+                    imgUrl: 'img/2.jpg',
+                    imgShow: false
+                }, {
+                    index: 3,
+                    imgUrl: 'img/3.jpg',
+                    imgShow: false
+                }, {
+                    index: 4,
+                    imgUrl: 'img/4.jpg',
+                    imgShow: false
+                }, {
+                    index: 5,
+                    imgUrl: 'img/5.jpg',
+                    imgShow: false
+                }, {
+                    index: 6,
+                    imgUrl: 'img/6.jpg',
+                    imgShow: false
+                }],
+                openShow: false,
+                mirrorNum: 0,
+                imgTimer: null,
+                rotateY: 0,
+                imgIndex: -1,
+                listTimer: null,
+                boxTimer: null,
+                infoShow: false,
+                miaoTimer: null,
+                catSpeed: 0,
+                catTimer: null,
+                closeSpeed: -1,
+                closeTimer: null
+            }
+        },
+        mounted: function() {},
+        methods: {
+            imgMove() {
+                var oBox = document.getElementById('box');
+                var oMinBox = document.getElementById('minBox');
+                this.boxTimer = setInterval(() => {
+                    this.rotateY += 3;
+                    oBox.style.transform = 'perspective(800px) translateZ(-20px)  rotateX(-20deg) rotateY(' + this.rotateY + 'deg)';
+                    oMinBox.style.transform = 'perspective(800px) rotateX(-15deg) translateZ(-100px) rotateY(' + (-this.rotateY) + 'deg)';
+                }, 200)
+            },
+            cirClick() {
+                this.infoShow = !this.infoShow
+                var oBox = document.getElementById('box');
+                var aPupil = document.getElementsByClassName('pupil')
+                var oCat = document.getElementById('cat');
+                var aLi = oBox.getElementsByTagName('li');
+                if (this.infoShow) {
+                    clearInterval(this.imgTimer);
+                    this.imgTimer = setInterval(() => {
+                        this.imgIndex++;
+                        this.list[this.imgIndex].imgShow = true;
+                        if (this.imgIndex >= 5) {
+                            clearInterval(this.imgTimer);
+                            this.imgIndex = 0
+                        }
+                    }, 300);
+                    this.imgMove();
+                    for (var i = 0; i < aPupil.length; i++) {
+                        aPupil[i].style.top = '7px',
+                            aPupil[i].style.left = '30px'
+                    }
+                    this.$refs.vd.play()
+                    this.catTimer = setInterval(() => {
+                        var catNum = parseInt(this.$refs.vd.duration) / 2
+                        if (parseInt(this.$refs.vd.currentTime) >= catNum) {
+                            this.catSpeed -= 10;
+                        } else {
+                            this.catSpeed += 10;
+                        }
+                        if (parseInt(this.$refs.vd.currentTime) >= parseInt(this.$refs.vd.duration)) {
+                            clearInterval(this.catTimer);
+                            this.infoShow = false;
+                            clearInterval(this.boxTimer);
+                            for (var i in this.list) {
+                                this.list[i].imgShow = false;
+                            }
+                        }
+                        oCat.style.transform = 'perspective(800px) scale(0.3) translateZ(' + (-20 - this.catSpeed) + 'px)';
+                    }, 300)
+                } else {
+                    clearInterval(this.boxTimer);
+                    clearInterval(this.imgTimer);
+                    clearInterval(this.catTimer);
+                    for (var i = 0; i < aPupil.length; i++) {
+                        aPupil[i].style.top = '28px',
+                            aPupil[i].style.left = '0px'
+                    }
+                    this.$refs.vd.pause();
+                    for (var i in this.list) {
+                        this.list[i].imgShow = false;
+                    }
+                }
+            }
+        }
+    })
+</script>
+
+</html>
